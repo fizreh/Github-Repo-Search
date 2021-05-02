@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import { Button, Card, Accordion, Spinner} from 'react-bootstrap';
+import { Button, Card,Spinner,Image} from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
 
 export const Mainpage = () => {
@@ -8,7 +8,7 @@ export const Mainpage = () => {
     const [clicked, setClicked] = useState(false);
     const [availabe, setAvailable] = useState(false);
     const [repoInfoWrapper, setRepoInfoWrapper] = useState([]);
-    const [userInfoWrapper, setUserInfoWrapper] = useState([]);
+    const [userInfoWrapper, setUserInfoWrapper] = useState();
     let userInfo;
     let repoInfo;
     let repoInfo2;
@@ -42,9 +42,9 @@ export const Mainpage = () => {
             return response.json();
           })
           .then((data) => {
-            //userInfo = data;
+            userInfo = data;
            // console.log("USerInfo:",userInfo);
-            userInfo = data.map(function(item) {
+           /* userInfo = data.map(function(item) {
                 return {
                   name: item.name,
                   loginName: item.login,
@@ -52,7 +52,7 @@ export const Mainpage = () => {
                   url:item.url
                 };
                 
-              });
+              });*/
               console.log("USerInfo:",userInfo);
            
             
@@ -66,7 +66,7 @@ export const Mainpage = () => {
       };
 
     const getRepo = async () => {
-       // await getUserInfo();
+      await getUserInfo();
         const url = `https://api.github.com/users/${userName}/repos`;
         await fetch(url)
           .then((response) => {
@@ -101,42 +101,22 @@ export const Mainpage = () => {
       useEffect(() => {
           if(!userName) return;
           if(clicked)
-          { getRepo();
-        getUserInfo();}
+          { 
+            getUserInfo();
+            getRepo();
+        }
       },[] );
-if(availabe)
-{
+
+      if(availabe)
+    {
     console.log("RepoInfo: ",repoInfo);
     console.log("RepoInfoWrapper: ",repoInfoWrapper);
-    console.log("RepoInfo: ",userInfo);
-    console.log("RepoInfoWrapper: ",userInfoWrapper);
+    console.log("userInfo: ",userInfo);
+    console.log("userInfoWrapper: ",userInfoWrapper);
 }
 
 
-let  user = userInfoWrapper.map(repo =>(
-    <div className = "m-2">
 
-   <Card style = {{width : '840px'}}>
-     <Card.Header style={{textAlign:"left"}}>
-     <strong>{repo.name}</strong>
-   
-     </Card.Header>
-       <Card.Body className="row">
-         
-           <div className=" ml-2 row mr-4 pr-4"><Icon.Code className="mt-1" /><p className="pl-1">{repo.name}</p></div>
-          <div className="row mr-4 pr-4"><Icon.Star className="mt-1" /><p className="pl-1">{repo.location}</p></div> 
-          <div className="row mr-4 pr-4"><Icon.Diagram2 className="mt-1" /><p className ="pl-1">{repo.url}</p></div> 
-          
-          
-           
-           
-
-       
-       </Card.Body>
-   </Card>
-
- </div>
-))
 
      let  repositories = repoInfoWrapper.map(repo =>(
          <div className = "m-2">
@@ -180,7 +160,20 @@ let  user = userInfoWrapper.map(repo =>(
      
      {clicked? 
      (availabe && repositories.length > 0 ? 
-     (<div className="row"><Card className="col-3 mt-2">{user}</Card><div className = " col-9 row">{repositories} </div></div>):
+     (<div className="row"><div className="col-4 mt-2"><Card >
+     <Card.Header style={{textAlign:"left"}}>
+     <Image style ={{width:"290px", height:"200px"}} src={userInfoWrapper.avatar_url} rounded />
+     <strong>{userInfoWrapper.name}</strong>
+     </Card.Header>
+       <Card.Body>
+          <div className="row mr-4 pr-4"><p className="pl-4">{userInfoWrapper.location}</p></div> 
+          <div className="row mr-4 pr-4"><p className ="pl-4">{userInfoWrapper.url}</p></div> 
+          <div className="row mr-4 pr-4"><p className ="pl-4"><Icon.MenuApp />{userInfoWrapper.followers}</p></div> 
+          <div className="row mr-4 pr-4"><p className ="pl-4"><Icon.Envelope />{userInfoWrapper.email}</p></div> 
+          <div className="row mr-4 pr-4"><p className ="pl-4"><Icon.Info />{userInfoWrapper.bio}</p></div>
+       
+       </Card.Body>
+   </Card></div><div className = " col-8 row">{repositories} </div></div>):
         
         (<div><Spinner ></Spinner></div>))
      
