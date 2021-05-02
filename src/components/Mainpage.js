@@ -8,6 +8,7 @@ export const Mainpage = () => {
     const [userName, setUserName] = useState("");
     const [selectedRepo, setSelectedRepo] = useState("");
     const [clicked, setClicked] = useState(false);
+    const [userFound, setUserFound] = useState(false);
     const [selected, setSelected] = useState(false);
     const [availabe, setAvailable] = useState(false);
     const [repoInfoWrapper, setRepoInfoWrapper] = useState([]);
@@ -23,9 +24,7 @@ export const Mainpage = () => {
         console.log("User Name: ",userName);
         if(!userName) return;
         setClicked(true);
-        await getRepo().then(()=>{
-            setAvailable(true);
-        });    
+        await getRepo();   
     }
 
    const  onClick = ()=>{
@@ -46,8 +45,10 @@ export const Mainpage = () => {
             return response.json();
           })
           .then((data) => {
+              if(data.message){return;} 
             userInfo = data;
-           // console.log("USerInfo:",userInfo);
+            setUserFound(true);
+           console.log("USerInfo:",userInfo);
            /* userInfo = data.map(function(item) {
                 return {
                   name: item.name,
@@ -57,7 +58,6 @@ export const Mainpage = () => {
                 };
                 
               });*/
-              console.log("USerInfo:",userInfo);
            
             
           })
@@ -71,12 +71,14 @@ export const Mainpage = () => {
 
     const getRepo = async () => {
       await getUserInfo();
+      if(!userFound) return;
         const url = `https://api.github.com/users/${userName}/repos`;
         await fetch(url)
           .then((response) => {
             return response.json();
           })
           .then((data) => {
+            if(data.message == "Not Found") return;
             //repoInfo = data;
             //console.log("RepoInfo 2",repoInfo2);
             repoInfo = data.map(function(item) {
@@ -106,18 +108,18 @@ export const Mainpage = () => {
           if(!userName) return;
           if(clicked)
           { 
-            //getUserInfo();
-            //getRepo();
+            getUserInfo();
+            getRepo();
         }
       },[] );
 
-      /* if(availabe)
+       if(availabe)
     {
     console.log("RepoInfo: ",repoInfo);
     console.log("RepoInfoWrapper: ",repoInfoWrapper);
     console.log("userInfo: ",userInfo);
     console.log("userInfoWrapper: ",userInfoWrapper);
-} */
+} 
 
 
 
@@ -161,9 +163,20 @@ export const Mainpage = () => {
             </div>
             <Button onClick ={searchClicked}>Search Repo</Button>
             </div>
+
+    {clicked && userFound && repoInfoWrapper.length > 0? (<div className="row" style={{paddingLeft:"65%"}}> <div className="col-10">
+   <Typeahead
+          id="basic-typeahead-single"
+          labelKey="name"
+          onChange={setSelectedRepo}
+          placeholder="Choose a repo..."
+          options = {repoInfoWrapper}
+          value = {selectedRepo}
+          
+        /></div><Button onClick ={onClick}>Go</Button></div>):(<div></div>)}
      
      {clicked? 
-     (availabe && repositories.length > 0 ? 
+     (userFound && userInfoWrapper ? 
      (<div className="row"><div className="col-4 mt-2">
        
     <Card >
@@ -180,22 +193,13 @@ export const Mainpage = () => {
        </Card.Body>
    </Card></div> 
    <div className = " col-8 row">
-       <div className="row pl-2"><div className="col-10">
-   <Typeahead
-          id="basic-typeahead-single"
-          labelKey="name"
-          onChange={setSelectedRepo}
-          placeholder="Choose a repo..."
-          options = {repoInfoWrapper}
-          value = {selectedRepo}
-          
-        /></div><div className="col-2"> <Button onClick ={onClick}>Go</Button></div> </div> {repositories} </div></div>):
+  <p className="pl-2 mb-n4"> <strong>{repoInfoWrapper.length}</strong> Repositories</p>
+        {repositories} </div></div>):
         
-        (<div><Spinner ></Spinner></div>))
+        (<div>User doesnt exist</div>))
      
      :(<div></div>)}
-     {availabe && repositories.length <= 0 ? 
-(<div>Repo not found</div>):(<div></div>)}
+ 
    
          
            
