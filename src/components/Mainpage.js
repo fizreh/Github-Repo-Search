@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import { Button, Card,Spinner,Image, Row} from 'react-bootstrap';
+import { Button, Card,Spinner,Image,NavLink} from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead'
 import * as Icon from 'react-bootstrap-icons';
 
@@ -8,7 +8,7 @@ export const Mainpage = () => {
     const [userName, setUserName] = useState("");
     const [selectedRepo, setSelectedRepo] = useState("");
     const [clicked, setClicked] = useState(false);
-    const [userFound, setUserFound] = useState(false);
+    const [showRepos, setShowRepos] = useState(false);
     const [selected, setSelected] = useState(false);
     const [availabe, setAvailable] = useState(false);
     const [repoInfoWrapper, setRepoInfoWrapper] = useState([]);
@@ -24,8 +24,12 @@ export const Mainpage = () => {
         console.log("User Name: ",userName);
         if(!userName) return;
         setClicked(true);
-        await getRepo();   
+        await getRepo().then(()=>{
+            setAvailable(true);
+        });    
     }
+
+   
 
    const  onClick = ()=>{
         setSelected(true);
@@ -34,6 +38,10 @@ export const Mainpage = () => {
        
 
     }
+
+   
+
+   
 
     
 
@@ -45,10 +53,8 @@ export const Mainpage = () => {
             return response.json();
           })
           .then((data) => {
-              if(data.message){return;} 
             userInfo = data;
-            setUserFound(true);
-           console.log("USerInfo:",userInfo);
+           // console.log("USerInfo:",userInfo);
            /* userInfo = data.map(function(item) {
                 return {
                   name: item.name,
@@ -58,6 +64,7 @@ export const Mainpage = () => {
                 };
                 
               });*/
+              //console.log("USerInfo:",userInfo);
            
             
           })
@@ -71,14 +78,12 @@ export const Mainpage = () => {
 
     const getRepo = async () => {
       await getUserInfo();
-      if(!userFound) return;
         const url = `https://api.github.com/users/${userName}/repos`;
         await fetch(url)
           .then((response) => {
             return response.json();
           })
           .then((data) => {
-            if(data.message == "Not Found") return;
             //repoInfo = data;
             //console.log("RepoInfo 2",repoInfo2);
             repoInfo = data.map(function(item) {
@@ -113,14 +118,13 @@ export const Mainpage = () => {
         }
       },[] );
 
-       if(availabe)
+       /* if(availabe)
     {
     console.log("RepoInfo: ",repoInfo);
     console.log("RepoInfoWrapper: ",repoInfoWrapper);
     console.log("userInfo: ",userInfo);
     console.log("userInfoWrapper: ",userInfoWrapper);
-} 
-
+}  */
 
 
 
@@ -163,20 +167,23 @@ export const Mainpage = () => {
             </div>
             <Button onClick ={searchClicked}>Search Repo</Button>
             </div>
+            
 
-    {clicked && userFound && repoInfoWrapper.length > 0? (<div className="row" style={{paddingLeft:"65%"}}> <div className="col-10">
+    {clicked? (<div className="row" style={{paddingLeft:"65%"}}> <div className="col-10">
    <Typeahead
-          id="basic-typeahead-single"
+          name = "typeahead"
+          id ="basic-typeahead-single"
           labelKey="name"
           onChange={setSelectedRepo}
           placeholder="Choose a repo..."
           options = {repoInfoWrapper}
           value = {selectedRepo}
           
-        /></div><Button onClick ={onClick}>Go</Button></div>):(<div></div>)}
+        /></div><Button onClick ={onClick}>Go</Button></div>):(<></>)}
+      
      
      {clicked? 
-     (userFound && userInfoWrapper ? 
+     (availabe || repositories.length > 0 ? 
      (<div className="row"><div className="col-4 mt-2">
        
     <Card >
@@ -192,11 +199,34 @@ export const Mainpage = () => {
   
        </Card.Body>
    </Card></div> 
-   <div className = " col-8 row">
+  {!selected || showRepos? (<div className = " col-8 row">
   <p className="pl-2 mb-n4"> <strong>{repoInfoWrapper.length}</strong> Repositories</p>
-        {repositories} </div></div>):
+     {repositories} </div>): 
+     (<div className = " col-2 ml-n2 "><NavLink onClick={()=>{setShowRepos(true)}}><strong>{repoInfoWrapper.length}</strong> Repositories</NavLink><div className = " ">
+    
+     <Card style = {{width : '840px'}}>
+       <Card.Header style={{textAlign:"left"}}>
+       <strong>{selectedRepo.name}</strong>
+     
+       </Card.Header>
+         <Card.Body className="row">
+           
+             <div className=" ml-2 row mr-4 pr-4"><Icon.Code className="mt-1" /><p className="pl-1">{selectedRepo.language}</p></div>
+            <div className="row mr-4 pr-4"><Icon.Star className="mt-1" /><p className="pl-1">{selectedRepo.stargazers_count}</p></div> 
+            <div className="row mr-4 pr-4"><Icon.Diagram2 className="mt-1" /><p className ="pl-1">{selectedRepo.forks_count}</p></div> 
+            
+            
+             
+             
+
+         
+         </Card.Body>
+     </Card>
+ 
+   </div></div>)
+     }</div>):
         
-        (<div>User doesnt exist</div>))
+        (<div><Spinner ></Spinner></div>))
      
      :(<div></div>)}
  
