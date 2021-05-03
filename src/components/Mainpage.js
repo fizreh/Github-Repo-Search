@@ -1,17 +1,22 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import { Button, Card,Spinner,Image} from 'react-bootstrap';
+import { Button, Card,Spinner,Image,NavLink} from 'react-bootstrap';
+import { Typeahead } from 'react-bootstrap-typeahead'
 import * as Icon from 'react-bootstrap-icons';
 
 export const Mainpage = () => {
     const [userName, setUserName] = useState("");
+    const [selectedRepo, setSelectedRepo] = useState("");
     const [clicked, setClicked] = useState(false);
+    const [showRepos, setShowRepos] = useState(false);
+    const [selected, setSelected] = useState(false);
     const [availabe, setAvailable] = useState(false);
     const [repoInfoWrapper, setRepoInfoWrapper] = useState([]);
+    const [options, setOptions] = useState([]);
     const [userInfoWrapper, setUserInfoWrapper] = useState();
     let userInfo;
     let repoInfo;
-    let repoInfo2;
+    let repoObj;
 
 
 
@@ -21,16 +26,22 @@ export const Mainpage = () => {
         setClicked(true);
         await getRepo().then(()=>{
             setAvailable(true);
-        });
-        
-        
-    
-
-      
-
-    
-        
+        });    
     }
+
+   
+
+   const  onClick = ()=>{
+        setSelected(true);
+        console.log("Repo ingo in click:",repoInfoWrapper);
+        console.log("Selected Repo: ",selectedRepo);
+       
+
+    }
+
+   
+
+   
 
     
 
@@ -53,7 +64,7 @@ export const Mainpage = () => {
                 };
                 
               });*/
-              console.log("USerInfo:",userInfo);
+              //console.log("USerInfo:",userInfo);
            
             
           })
@@ -107,14 +118,13 @@ export const Mainpage = () => {
         }
       },[] );
 
-      if(availabe)
+       /* if(availabe)
     {
     console.log("RepoInfo: ",repoInfo);
     console.log("RepoInfoWrapper: ",repoInfoWrapper);
     console.log("userInfo: ",userInfo);
     console.log("userInfoWrapper: ",userInfoWrapper);
-}
-
+}  */
 
 
 
@@ -157,29 +167,69 @@ export const Mainpage = () => {
             </div>
             <Button onClick ={searchClicked}>Search Repo</Button>
             </div>
+            
+
+    {clicked? (<div className="row" style={{paddingLeft:"65%"}}> <div className="col-10">
+   <Typeahead
+          name = "typeahead"
+          id ="basic-typeahead-single"
+          labelKey="name"
+          onChange={setSelectedRepo}
+          placeholder="Choose a repo..."
+          options = {repoInfoWrapper}
+          value = {selectedRepo}
+          
+        /></div><Button onClick ={onClick}>Go</Button></div>):(<></>)}
+      
      
      {clicked? 
-     (availabe && repositories.length > 0 ? 
-     (<div className="row"><div className="col-4 mt-2"><Card >
+     (availabe || repositories.length > 0 ? 
+     (<div className="row"><div className="col-4 mt-2">
+       
+    <Card >
      <Card.Header style={{textAlign:"left"}}>
      <Image style ={{width:"290px", height:"200px"}} src={userInfoWrapper.avatar_url} rounded />
      <strong>{userInfoWrapper.name}</strong>
      </Card.Header>
        <Card.Body>
-          <div className="row mr-4 pr-4"><p className="pl-4">{userInfoWrapper.location}</p></div> 
-          <div className="row mr-4 pr-4"><p className ="pl-4">{userInfoWrapper.url}</p></div> 
-          <div className="row mr-4 pr-4"><p className ="pl-4"><Icon.MenuApp />{userInfoWrapper.followers}</p></div> 
-          <div className="row mr-4 pr-4"><p className ="pl-4"><Icon.Envelope />{userInfoWrapper.email}</p></div> 
-          <div className="row mr-4 pr-4"><p className ="pl-4"><Icon.Info />{userInfoWrapper.bio}</p></div>
-       
+       <div className="row mr-4 pr-4"><p className="pl-2">{userInfoWrapper.location}</p></div> 
+          {userInfoWrapper.followers? (<div className="row mr-4 pr-4"><p className =" col-1 pl-2"><Icon.EmojiSmile /></p><p className ="col-5  pl-2"><strong>{userInfoWrapper.followers}</strong> followers</p>.<p className ="col-5  pl-2"><strong>{userInfoWrapper.following}</strong> following</p></div>):(<div></div>)} 
+     {userInfoWrapper.email? (<div className="row mr-4 pr-4"><p className ="pl-2"><Icon.Envelope /></p><p className ="pl-4">{userInfoWrapper.email}</p></div>):(<div></div>) }
+     {userInfoWrapper.bio? (<div className="row mr-4 pr-4"><p className ="pl-2 col-1"><Icon.Info /></p><p className ="pl-1 col-10">{userInfoWrapper.bio}</p></div>):(<div></div>)}
+  
        </Card.Body>
-   </Card></div><div className = " col-8 row">{repositories} </div></div>):
+   </Card></div> 
+  {!selected || showRepos? (<div className = " col-8 row">
+  <p className="pl-2 mb-n4"> <strong>{repoInfoWrapper.length}</strong> Repositories</p>
+     {repositories} </div>): 
+     (<div className = " col-2 ml-n2 "><NavLink onClick={()=>{setShowRepos(true)}}><strong>{repoInfoWrapper.length}</strong> Repositories</NavLink><div className = " ">
+    
+     <Card style = {{width : '840px'}}>
+       <Card.Header style={{textAlign:"left"}}>
+       <strong>{selectedRepo.name}</strong>
+     
+       </Card.Header>
+         <Card.Body className="row">
+           
+             <div className=" ml-2 row mr-4 pr-4"><Icon.Code className="mt-1" /><p className="pl-1">{selectedRepo.language}</p></div>
+            <div className="row mr-4 pr-4"><Icon.Star className="mt-1" /><p className="pl-1">{selectedRepo.stargazers_count}</p></div> 
+            <div className="row mr-4 pr-4"><Icon.Diagram2 className="mt-1" /><p className ="pl-1">{selectedRepo.forks_count}</p></div> 
+            
+            
+             
+             
+
+         
+         </Card.Body>
+     </Card>
+ 
+   </div></div>)
+     }</div>):
         
         (<div><Spinner ></Spinner></div>))
      
      :(<div></div>)}
-     {availabe && repositories.length <= 0 ? 
-(<div>Repo not found</div>):(<div></div>)}
+ 
    
          
            
